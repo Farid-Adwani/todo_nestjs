@@ -1,25 +1,43 @@
-import { Body, Controller, Get, Post, Req } from "@nestjs/common";
-import { Todo } from './Model/todo.model';
-import { Request } from "express";
-import { v4 as uuidv4 } from 'uuid';
+import { Body, Controller, Delete, Get, Param, Patch, Put } from '@nestjs/common';
+import { TodoService } from 'src/todo/todo.service';
+import { Todo } from './model/todo.model';
+import { TodoDto } from './dto/TodoDto';
+import { AddTodoDto } from './dto/addTodoDto';
+
+
 @Controller('todo')
 export class TodoController {
-  constructor() {
-    this.todos = [new Todo('1', 'Sport', 'Faire du sport')];
-  }
-  todos: Todo[] = [];
+  constructor(private readonly todoService: TodoService) { }
+
+  todos: Todo[] = [new Todo(0, 'todo1', '1'), new Todo(1, 'todo2', '2'), new Todo(2, 'todo3', '3')]
   @Get()
-  getTodos(@Req() request: Request): Todo[] {
-    // console.log(request);
+  getTodos(): Todo[] {
     return this.todos;
+
   }
-  @Post()
-  addTodo(@Body() newTodoData: Todo): Todo {
-    let todo = new Todo();
-    // const { name, description} = newTodoData;
-    todo.id = uuidv4();
-    todo = { ...todo, ...newTodoData };
-    this.todos.push(todo);
-    return todo;
+  @Get(':id')
+  getTodoById(@Param() params): Todo | string {
+    return this.todoService.findOne(params.id)
+
   }
+
+  @Delete(':id')
+  deleteById(@Param() params): Todo | string {
+    const todo = this.todoService.deleteOne(params.id)
+    if (todo)
+      return todo
+    else
+      return 'not found'
+  }
+
+  @Patch(':id')
+  updateTodoPatch(@Param() params, @Body() updatedTodo: TodoDto): Todo {
+    return this.todoService.update(params.id, updatedTodo)
+  }
+
+  @Put(':id')
+  updateTodoPut(@Param() params, @Body() updatedTodo: TodoDto): Todo {
+    return this.todoService.update(params.id, updatedTodo)
+  }
+
 }
